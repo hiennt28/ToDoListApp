@@ -1,6 +1,7 @@
 package com.example.todolist.ui;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.todolist.R;
 import com.example.todolist.notification.NotificationHelper;
+import com.example.todolist.util.SessionManager;
 import com.example.todolist.util.ThemePreferences;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -31,6 +33,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ThemePreferences.applySavedTheme(this);
         super.onCreate(savedInstanceState);
+
+        // Phòng vệ: nếu vì lý do gì đó session không còn (vd bị đăng xuất ở nơi khác),
+        // đẩy về LoginActivity thay vì hiện màn hình chính trống dữ liệu người dùng.
+        if (!SessionManager.isLoggedIn(this)) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         NotificationHelper.createNotificationChannel(this);

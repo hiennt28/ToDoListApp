@@ -1,25 +1,27 @@
-<string name="nav_task">Công việc</string>
-<string name="nav_calendar">Lịch</string>
-<string name="nav_user">Cá nhân</string>
+<string name="hint_username">Tên đăng nhập</string>
+<string name="hint_password">Mật khẩu</string>
+<string name="hint_confirm_password">Xác nhận mật khẩu</string>
+<string name="hint_display_name">Tên hiển thị</string>
+<string name="hint_new_password">Mật khẩu mới</string>
+<string name="hint_leave_password_blank">Để trống nếu không muốn đổi mật khẩu</string>
 
-<string name="label_today_progress">Hôm nay: %1$d/%2$d công việc</string>
-<string name="label_reminder">Thời gian thông báo</string>
-<string name="label_subtasks">Danh sách con (tuỳ chọn)</string>
-<string name="hint_subtask_title">Tên mục con</string>
-<string name="title_add_task">Thêm công việc</string>
-<string name="title_edit_task">Sửa công việc</string>
+<string name="action_login">Đăng nhập</string>
+<string name="action_register">Đăng ký</string>
+<string name="action_logout">Đăng xuất</string>
+<string name="action_edit_profile">Sửa thông tin</string>
 
-<string name="action_edit">Sửa</string>
-<string name="action_delete">Xóa</string>
-<string name="action_add_subtask">Thêm mục con</string>
-<string name="action_remove_subtask">Xóa mục con</string>
-<string name="action_prev_month">Tháng trước</string>
-<string name="action_next_month">Tháng sau</string>
-<string name="empty_state_no_task_this_day">Không có công việc nào trong ngày này</string>
+<string name="msg_login_subtitle">Đăng nhập để tiếp tục</string>
+<string name="msg_register_subtitle">Tạo tài khoản mới</string>
+<string name="msg_no_account">Chưa có tài khoản? Đăng ký</string>
+<string name="msg_have_account">Đã có tài khoản? Đăng nhập</string>
+<string name="msg_profile_updated">Đã cập nhật thông tin</string>
 
-<string-array name="reminder_options">
-    <item>Không báo</item>
-    <item>Báo đúng giờ</item>
-    <item>Báo trước 5 phút</item>
-    <item>Báo trước 10 phút</item>
-</string-array>
+<string name="error_fields_required">Vui lòng nhập đầy đủ thông tin</string>
+<string name="error_password_too_short">Mật khẩu phải từ 6 ký tự trở lên</string>
+<string name="error_password_mismatch">Mật khẩu xác nhận không khớp</string>
+<string name="error_username_taken">Tên đăng nhập đã tồn tại</string>
+<string name="error_login_failed">Sai tên đăng nhập hoặc mật khẩu</string>
+<string name="error_display_name_required">Vui lòng nhập tên hiển thị</string>
+
+<string name="title_edit_profile">Sửa thông tin cá nhân</string>
+<string name="btn_save_profile">Lưu thay đổi</string>

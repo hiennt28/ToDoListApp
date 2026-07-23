@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginTop="6dp">
+
+    <EditText
+        android:id="@+id/edt_subtask_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="@string/hint_subtask_title"
+        android:background="@drawable/bg_subtask_input"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:textSize="14sp" />
+
+    <ImageButton
+        android:id="@+id/btn_remove_subtask"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/text_secondary"
+        android:contentDescription="@string/action_remove_subtask" />
+
+</LinearLayout>

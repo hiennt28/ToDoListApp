@@ -12,6 +12,7 @@ import androidx.lifecycle.Transformations;
 import com.example.todolist.model.SubTask;
 import com.example.todolist.model.Task;
 import com.example.todolist.model.TaskWithSubTasks;
+import com.example.todolist.notification.AlarmScheduler;
 import com.example.todolist.repository.TaskRepository;
 
 import java.text.SimpleDateFormat;
@@ -19,12 +20,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class TaskViewModel extends AndroidViewModel {
+
+    public enum CompletionFilter { ALL, NOT_DONE, IN_PROGRESS, DONE }
 
     public static class TodayProgress {
         public final int completed;
@@ -39,7 +41,7 @@ public class TaskViewModel extends AndroidViewModel {
     private final LiveData<List<TaskWithSubTasks>> allTasks;
 
     private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
-    private final MutableLiveData<String> selectedTopic = new MutableLiveData<>(""); // "" = không lọc
+    private final MutableLiveData<CompletionFilter> completionFilter = new MutableLiveData<>(CompletionFilter.ALL);
     private final MediatorLiveData<List<TaskWithSubTasks>> filteredTasks = new MediatorLiveData<>();
 
     public TaskViewModel(@NonNull Application application) {
@@ -49,7 +51,7 @@ public class TaskViewModel extends AndroidViewModel {
 
         filteredTasks.addSource(allTasks, tasks -> applyFilters());
         filteredTasks.addSource(searchQuery, q -> applyFilters());
-        filteredTasks.addSource(selectedTopic, t -> applyFilters());
+        filteredTasks.addSource(completionFilter, f -> applyFilters());
     }
 
     private void applyFilters() {
@@ -57,7 +59,7 @@ public class TaskViewModel extends AndroidViewModel {
         if (source == null) return;
 
         String query = searchQuery.getValue() == null ? "" : searchQuery.getValue().toLowerCase(Locale.getDefault());
-        String topic = selectedTopic.getValue() == null ? "" : selectedTopic.getValue();
+        CompletionFilter filter = completionFilter.getValue() == null ? CompletionFilter.ALL : completionFilter.getValue();
         long startOfToday = getStartOfTodayMillis();
         long endOfToday = getEndOfTodayMillis();
 
@@ -65,27 +67,34 @@ public class TaskViewModel extends AndroidViewModel {
         for (TaskWithSubTasks item : source) {
             Task task = item.task;
 
-            // Tab Task chỉ hiện việc HÔM NAY (xong hay chưa đều hiện) + việc QUÁ HẠN chưa xong.
-            // Muốn xem ngày khác thì qua tab Calendar.
             boolean isToday = task.getDueDate() >= startOfToday && task.getDueDate() <= endOfToday;
             boolean isOverdueIncomplete = task.getDueDate() < startOfToday && !task.isCompleted();
             if (!isToday && !isOverdueIncomplete) continue;
 
             if (!query.isEmpty() && !task.getTitle().toLowerCase(Locale.getDefault()).contains(query)) continue;
-            if (!topic.isEmpty() && !task.getTitle().equals(topic)) continue;
 
+            if (filter != CompletionFilter.ALL) {
+                boolean matches;
+                int doneSub = item.getCompletedSubTaskCount();
+                int totalSub = item.subTasks.size();
+                switch (filter) {
+                    case DONE:
+                        matches = task.isCompleted();
+                        break;
+                    case IN_PROGRESS:
+                        // "Đang làm": chưa xong hẳn nhưng đã tick được ít nhất 1 việc con (chưa hết)
+                        matches = !task.isCompleted() && totalSub > 0 && doneSub > 0 && doneSub < totalSub;
+                        break;
+                    case NOT_DONE:
+                    default:
+                        matches = !task.isCompleted() && doneSub == 0;
+                        break;
+                }
+                if (!matches) continue;
+            }
             result.add(item);
         }
         filteredTasks.setValue(result);
-    }
-
-    // "Chủ đề" = các Tiêu đề khác nhau đang có -> dùng để tạo Chip lọc động
-    public LiveData<List<String>> getDistinctTopics() {
-        return Transformations.map(allTasks, list -> {
-            LinkedHashSet<String> topics = new LinkedHashSet<>();
-            for (TaskWithSubTasks item : list) topics.add(item.task.getTitle());
-            return new ArrayList<>(topics);
-        });
     }
 
     public LiveData<TodayProgress> getTodayProgress() {
@@ -104,7 +113,6 @@ public class TaskViewModel extends AndroidViewModel {
         });
     }
 
-    // Gom Task theo ngày (yyyy-MM-dd) để tab Calendar biết ngày nào có việc + hiện đúng danh sách
     public LiveData<Map<String, List<TaskWithSubTasks>>> getTasksGroupedByDate() {
         return Transformations.map(allTasks, list -> {
             Map<String, List<TaskWithSubTasks>> map = new HashMap<>();
@@ -135,17 +143,68 @@ public class TaskViewModel extends AndroidViewModel {
     public LiveData<List<TaskWithSubTasks>> getAllTasksWithSubTasks() { return allTasks; }
 
     public void setSearchQuery(String query) { searchQuery.setValue(query); }
-    public void setSelectedTopic(String topic) { selectedTopic.setValue(topic); }
+    public void setCompletionFilter(CompletionFilter filter) { completionFilter.setValue(filter); }
+
+    // --- Toàn bộ việc đặt/hủy AlarmManager giờ nằm DUY NHẤT ở đây.
+    // TaskFragment, CalendarFragment, AddEditTaskBottomSheetFragment không import
+    // AlarmScheduler nữa -> tránh tình trạng sửa 1 nơi quên nơi khác. ---
 
     public void insertTaskWithSubTasks(Task task, List<SubTask> subTasks, TaskRepository.OnInsertCompleteListener listener) {
-        repository.insertTaskWithSubTasks(task, subTasks, listener);
+        repository.insertTaskWithSubTasks(task, subTasks, newTaskId -> {
+            task.setId((int) newTaskId);
+            AlarmScheduler.scheduleTaskAlarm(getApplication(), task);
+            if (listener != null) listener.onInsertComplete(newTaskId);
+        });
     }
+
     public void updateTaskWithSubTasks(Task task, List<SubTask> subTasks) {
+        AlarmScheduler.cancelTaskAlarm(getApplication(), task);
         repository.updateTaskWithSubTasks(task, subTasks);
+        if (!task.isCompleted()) {
+            AlarmScheduler.scheduleTaskAlarm(getApplication(), task);
+        }
     }
-    public void updateTask(Task task) { repository.updateTask(task); }
-    public void deleteTask(Task task) { repository.deleteTask(task); }
-    public void updateSubTask(SubTask subTask) { repository.updateSubTask(subTask); }
+
+    // Tick/bỏ tick trực tiếp trên Task cha
+    public void updateTaskCompletion(Task task, boolean isChecked) {
+        task.setCompleted(isChecked);
+        repository.updateTask(task);
+        if (isChecked) {
+            AlarmScheduler.cancelTaskAlarm(getApplication(), task);
+        } else {
+            // Bỏ tick -> báo thức phải kêu lại BÌNH THƯỜNG (nếu giờ hẹn còn ở tương lai)
+            AlarmScheduler.scheduleTaskAlarm(getApplication(), task);
+        }
+    }
+
+    // Tick/bỏ tick 1 mục con -> tự đồng bộ trạng thái Task cha
+    public void updateSubTaskCompletion(TaskWithSubTasks parentItem, SubTask subTask, boolean isChecked) {
+        subTask.setCompleted(isChecked);
+        repository.updateSubTask(subTask);
+
+        boolean allSubtasksDone = true;
+        for (SubTask s : parentItem.subTasks) {
+            if (!s.isCompleted()) { allSubtasksDone = false; break; }
+        }
+
+        Task parentTask = parentItem.task;
+        if (allSubtasksDone && !parentTask.isCompleted()) {
+            // Tất cả mục con đã xong -> Task cha TỰ ĐỘNG chuyển sang hoàn thành
+            parentTask.setCompleted(true);
+            repository.updateTask(parentTask);
+            AlarmScheduler.cancelTaskAlarm(getApplication(), parentTask);
+        } else if (!allSubtasksDone && parentTask.isCompleted()) {
+            // Vừa bỏ tick 1 mục con trong khi Task cha đang hiện hoàn thành -> Task cha quay lại CHƯA xong
+            parentTask.setCompleted(false);
+            repository.updateTask(parentTask);
+            AlarmScheduler.scheduleTaskAlarm(getApplication(), parentTask);
+        }
+    }
+
+    public void deleteTask(Task task) {
+        AlarmScheduler.cancelTaskAlarm(getApplication(), task);
+        repository.deleteTask(task);
+    }
 
     @Override
     protected void onCleared() {

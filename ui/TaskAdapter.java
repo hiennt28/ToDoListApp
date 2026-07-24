@@ -29,14 +29,12 @@ public class TaskAdapter extends ListAdapter<TaskWithSubTasks, TaskAdapter.TaskV
 
     public interface OnTaskInteractionListener {
         void onTaskCheckedChanged(Task task, boolean isChecked);
-        void onSubTaskCheckedChanged(SubTask subTask, boolean isChecked);
+        void onSubTaskCheckedChanged(TaskWithSubTasks parentItem, SubTask subTask, boolean isChecked);
         void onEditClicked(TaskWithSubTasks item);
         void onDeleteClicked(TaskWithSubTasks item);
     }
 
     private final OnTaskInteractionListener listener;
-    // Id các Task đang MỞ RỘNG hiện sub-task - tồn tại độc lập với dữ liệu để không
-    // bị mất trạng thái đóng/mở mỗi khi submitList() nhận danh sách mới.
     private final Set<Integer> expandedTaskIds = new HashSet<>();
 
     public TaskAdapter(OnTaskInteractionListener listener) {
@@ -52,13 +50,31 @@ public class TaskAdapter extends ListAdapter<TaskWithSubTasks, TaskAdapter.TaskV
 
         @Override
         public boolean areContentsTheSame(@NonNull TaskWithSubTasks oldItem, @NonNull TaskWithSubTasks newItem) {
-            return oldItem.task.getTitle().equals(newItem.task.getTitle())
+            boolean taskSame = oldItem.task.getTitle().equals(newItem.task.getTitle())
                     && Objects.equals(oldItem.task.getDescription(), newItem.task.getDescription())
                     && oldItem.task.getDueDate() == newItem.task.getDueDate()
                     && oldItem.task.isCompleted() == newItem.task.isCompleted()
-                    && oldItem.task.getPriority() == newItem.task.getPriority()
-                    && oldItem.subTasks.size() == newItem.subTasks.size()
-                    && oldItem.getCompletedSubTaskCount() == newItem.getCompletedSubTaskCount();
+                    && oldItem.task.getPriority() == newItem.task.getPriority();
+            if (!taskSame) return false;
+            if (oldItem.subTasks.size() != newItem.subTasks.size()) return false;
+
+            // So khớp TỪNG mục con theo id (Room không đảm bảo thứ tự trả về của @Relation).
+            // Trước đây chỉ so tổng số hoàn thành -> 2 tổ hợp tick khác nhau nhưng cùng
+            // tổng số bị coi là "không đổi", UI không vẽ lại. Đây là lỗi vừa tìm thấy.
+            for (SubTask newSub : newItem.subTasks) {
+                boolean matched = false;
+                for (SubTask oldSub : oldItem.subTasks) {
+                    if (oldSub.getId() == newSub.getId()) {
+                        if (oldSub.isCompleted() != newSub.isCompleted() || !oldSub.getTitle().equals(newSub.getTitle())) {
+                            return false;
+                        }
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) return false;
+            }
+            return true;
         }
     };
 
@@ -119,10 +135,10 @@ public class TaskAdapter extends ListAdapter<TaskWithSubTasks, TaskAdapter.TaskV
             viewPriorityStrip.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), priorityColorRes));
 
             if (task.isCompleted()) {
-                tvTitle.setPaintFlags(tvTitle.getPaintFlags() | Paint.STRIKE_THRU_FLAG);
+                tvTitle.setPaintFlags(tvTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 itemView.setAlpha(0.6f);
             } else {
-                tvTitle.setPaintFlags(tvTitle.getPaintFlags() & ~Paint.STRIKE_THRU_FLAG);
+                tvTitle.setPaintFlags(tvTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                 itemView.setAlpha(1f);
             }
 
@@ -140,12 +156,12 @@ public class TaskAdapter extends ListAdapter<TaskWithSubTasks, TaskAdapter.TaskV
                     TextView tvSub = row.findViewById(R.id.tv_subtask_title);
                     tvSub.setText(subTask.getTitle());
                     tvSub.setPaintFlags(subTask.isCompleted()
-                            ? tvSub.getPaintFlags() | Paint.STRIKE_THRU_FLAG
-                            : tvSub.getPaintFlags() & ~Paint.STRIKE_THRU_FLAG);
+                            ? tvSub.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG
+                            : tvSub.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                     cbSub.setOnCheckedChangeListener(null);
                     cbSub.setChecked(subTask.isCompleted());
                     cbSub.setOnCheckedChangeListener((b, isChecked) -> {
-                        if (listener != null) listener.onSubTaskCheckedChanged(subTask, isChecked);
+                        if (listener != null) listener.onSubTaskCheckedChanged(item, subTask, isChecked);
                     });
                     containerSubtasks.addView(row);
                 }

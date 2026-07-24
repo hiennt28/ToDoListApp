@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:scaleX="0.85"
         android:scaleY="0.85"
-        android:buttonTint="@color/primary" />
+        android:buttonTint="@color/checkbox_tint_selector" />
 
     <TextView
         android:id="@+id/tv_subtask_title"

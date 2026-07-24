@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -20,8 +21,8 @@ import com.example.todolist.R;
 import com.example.todolist.model.SubTask;
 import com.example.todolist.model.Task;
 import com.example.todolist.model.TaskWithSubTasks;
-import com.example.todolist.notification.AlarmScheduler;
 import com.example.todolist.viewmodel.TaskViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class CalendarFragment extends Fragment implements TaskAdapter.OnTaskInte
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                              @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_calendar, container, false);
     }
 
@@ -89,15 +90,11 @@ public class CalendarFragment extends Fragment implements TaskAdapter.OnTaskInte
             TextView tv = new TextView(requireContext());
             tv.setText(label);
             tv.setGravity(Gravity.CENTER);
-            tv.setTextColor(ContextCompat_getColor(R.color.text_secondary));
+            tv.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
             tv.setTextSize(12);
             tv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
             headerWeekdays.addView(tv);
         }
-    }
-
-    private int ContextCompat_getColor(int colorRes) {
-        return androidx.core.content.ContextCompat.getColor(requireContext(), colorRes);
     }
 
     private void changeMonth(int delta) {
@@ -168,14 +165,12 @@ public class CalendarFragment extends Fragment implements TaskAdapter.OnTaskInte
 
     @Override
     public void onTaskCheckedChanged(Task task, boolean isChecked) {
-        task.setCompleted(isChecked);
-        taskViewModel.updateTask(task);
+        taskViewModel.updateTaskCompletion(task, isChecked);
     }
 
     @Override
-    public void onSubTaskCheckedChanged(SubTask subTask, boolean isChecked) {
-        subTask.setCompleted(isChecked);
-        taskViewModel.updateSubTask(subTask);
+    public void onSubTaskCheckedChanged(TaskWithSubTasks parentItem, SubTask subTask, boolean isChecked) {
+        taskViewModel.updateSubTaskCompletion(parentItem, subTask, isChecked);
     }
 
     @Override
@@ -186,7 +181,11 @@ public class CalendarFragment extends Fragment implements TaskAdapter.OnTaskInte
 
     @Override
     public void onDeleteClicked(TaskWithSubTasks item) {
-        AlarmScheduler.cancelTaskAlarm(requireContext(), item.task);
-        taskViewModel.deleteTask(item.task);
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.title_confirm_delete)
+                .setMessage(getString(R.string.msg_confirm_delete, item.task.getTitle()))
+                .setPositiveButton(R.string.action_delete, (dialog, which) -> taskViewModel.deleteTask(item.task))
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
     }
 }

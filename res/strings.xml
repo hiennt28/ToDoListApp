@@ -1,27 +1,89 @@
-<string name="hint_username">Tên đăng nhập</string>
-<string name="hint_password">Mật khẩu</string>
-<string name="hint_confirm_password">Xác nhận mật khẩu</string>
-<string name="hint_display_name">Tên hiển thị</string>
-<string name="hint_new_password">Mật khẩu mới</string>
-<string name="hint_leave_password_blank">Để trống nếu không muốn đổi mật khẩu</string>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">To-Do List</string> <!-- giữ giá trị bạn đang có nếu đã đặt tên khác -->
 
-<string name="action_login">Đăng nhập</string>
-<string name="action_register">Đăng ký</string>
-<string name="action_logout">Đăng xuất</string>
-<string name="action_edit_profile">Sửa thông tin</string>
+    <!-- Điều hướng (BottomNavigationView) -->
+    <string name="nav_task">Công việc</string>
+    <string name="nav_calendar">Lịch</string>
+    <string name="nav_user">Cá nhân</string>
+    <string name="fab_add_task_desc">Thêm công việc mới</string>
 
-<string name="msg_login_subtitle">Đăng nhập để tiếp tục</string>
-<string name="msg_register_subtitle">Tạo tài khoản mới</string>
-<string name="msg_no_account">Chưa có tài khoản? Đăng ký</string>
-<string name="msg_have_account">Đã có tài khoản? Đăng nhập</string>
-<string name="msg_profile_updated">Đã cập nhật thông tin</string>
+    <!-- Tab Task -->
+    <string name="greeting_morning">Chào buổi sáng!</string>
+    <string name="greeting_afternoon">Chào buổi chiều!</string>
+    <string name="greeting_evening">Chào buổi tối!</string>
+    <string name="hint_search_task">Tìm công việc...</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="empty_state_message">Tuyệt vời! Bạn đã hoàn thành hết rồi, nghỉ ngơi thôi 🎉</string>
+    <string name="label_today_progress">Hôm nay: %1$d/%2$d công việc</string>
+    <string name="action_edit">Sửa</string>
+    <string name="action_delete">Xóa</string>
 
-<string name="error_fields_required">Vui lòng nhập đầy đủ thông tin</string>
-<string name="error_password_too_short">Mật khẩu phải từ 6 ký tự trở lên</string>
-<string name="error_password_mismatch">Mật khẩu xác nhận không khớp</string>
-<string name="error_username_taken">Tên đăng nhập đã tồn tại</string>
-<string name="error_login_failed">Sai tên đăng nhập hoặc mật khẩu</string>
-<string name="error_display_name_required">Vui lòng nhập tên hiển thị</string>
+    <!-- Form Thêm/Sửa công việc -->
+    <string name="title_add_task">Thêm công việc</string>
+    <string name="title_edit_task">Sửa công việc</string>
+    <string name="hint_task_title">Tiêu đề công việc</string>
+    <string name="hint_task_description">Mô tả chi tiết</string>
+    <string name="label_priority">Mức độ ưu tiên</string>
+    <string name="priority_low">Thấp</string>
+    <string name="priority_medium">Trung bình</string>
+    <string name="priority_high">Cao</string>
+    <string name="label_reminder">Thời gian thông báo</string>
+    <string name="label_subtasks">Danh sách con (tuỳ chọn)</string>
+    <string name="hint_subtask_title">Tên mục con</string>
+    <string name="action_add_subtask">Thêm mục con</string>
+    <string name="action_remove_subtask">Xóa mục con</string>
+    <string name="btn_save_task">Lưu công việc</string>
+    <string name="error_title_required">Vui lòng nhập tiêu đề công việc</string>
+    <string name="error_due_date_in_past">Thời gian đã chọn phải ở tương lai</string>
+    <string name="msg_task_saved">Đã lưu công việc và đặt lịch nhắc nhở</string>
+    <string name="msg_notification_permission_denied">Bạn sẽ không nhận được thông báo nếu không cấp quyền</string>
 
-<string name="title_edit_profile">Sửa thông tin cá nhân</string>
-<string name="btn_save_profile">Lưu thay đổi</string>
+    <string-array name="reminder_options">
+        <item>Không báo</item>
+        <item>Báo đúng giờ</item>
+        <item>Báo trước 5 phút</item>
+        <item>Báo trước 10 phút</item>
+    </string-array>
+
+    <!-- Tab Calendar -->
+    <string name="action_prev_month">Tháng trước</string>
+    <string name="action_next_month">Tháng sau</string>
+    <string name="empty_state_no_task_this_day">Không có công việc nào trong ngày này</string>
+
+    <!-- Tab User: thống kê + Dark Mode -->
+    <string name="label_progress_today">Tiến độ hôm nay</string>
+    <string name="label_total_short">Tổng số</string>
+    <string name="label_completed_short">Hoàn thành</string>
+    <string name="dark_mode_label">Chế độ tối</string>
+    <string name="action_edit_profile">Sửa thông tin</string>
+    <string name="action_logout">Đăng xuất</string>
+
+    <!-- Đăng nhập / Đăng ký -->
+    <string name="hint_username">Tên đăng nhập</string>
+    <string name="hint_password">Mật khẩu</string>
+    <string name="hint_confirm_password">Xác nhận mật khẩu</string>
+    <string name="hint_display_name">Tên hiển thị</string>
+    <string name="hint_new_password">Mật khẩu mới</string>
+    <string name="hint_leave_password_blank">Để trống nếu không muốn đổi mật khẩu</string>
+    <string name="action_login">Đăng nhập</string>
+    <string name="action_register">Đăng ký</string>
+    <string name="msg_login_subtitle">Đăng nhập để tiếp tục</string>
+    <string name="msg_register_subtitle">Tạo tài khoản mới</string>
+    <string name="msg_no_account">Chưa có tài khoản? Đăng ký</string>
+    <string name="msg_have_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="msg_profile_updated">Đã cập nhật thông tin</string>
+    <string name="error_fields_required">Vui lòng nhập đầy đủ thông tin</string>
+    <string name="error_password_too_short">Mật khẩu phải từ 6 ký tự trở lên</string>
+    <string name="error_password_mismatch">Mật khẩu xác nhận không khớp</string>
+    <string name="error_username_taken">Tên đăng nhập đã tồn tại</string>
+    <string name="error_login_failed">Sai tên đăng nhập hoặc mật khẩu</string>
+    <string name="error_display_name_required">Vui lòng nhập tên hiển thị</string>
+    <string name="title_edit_profile">Sửa thông tin cá nhân</string>
+    <string name="btn_save_profile">Lưu thay đổi</string>
+    <string name="title_confirm_delete">Xóa công việc?</string>
+    <string name="msg_confirm_delete">Bạn có chắc chắn muốn xóa \"%1$s\"? Hành động này không thể hoàn tác.</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="filter_not_done">Chưa làm</string>
+    <string name="filter_done">Đã làm</string>
+</resources>

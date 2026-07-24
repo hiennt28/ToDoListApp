@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginTop="12dp"
-            android:buttonTint="@color/primary"
+            android:buttonTint="@color/checkbox_tint_selector"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/view_priority_strip" />
 

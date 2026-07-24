@@ -70,7 +70,7 @@ public class AddEditTaskBottomSheetFragment extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                              @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_add_edit_task, container, false);
     }
 
@@ -183,8 +183,6 @@ public class AddEditTaskBottomSheetFragment extends BottomSheetDialogFragment {
         if (editingItem == null) {
             Task newTask = new Task(title, description, dueDateMillis, false, priority, reminderOffset);
             taskViewModel.insertTaskWithSubTasks(newTask, subTasks, newTaskId -> {
-                newTask.setId((int) newTaskId);
-                AlarmScheduler.scheduleTaskAlarm(requireContext(), newTask);
                 Toast.makeText(requireContext(), R.string.msg_task_saved, Toast.LENGTH_SHORT).show();
                 dismiss();
             });
@@ -196,11 +194,7 @@ public class AddEditTaskBottomSheetFragment extends BottomSheetDialogFragment {
             task.setPriority(priority);
             task.setReminderOffset(reminderOffset);
 
-            // Hủy báo thức CŨ trước khi đặt lịch MỚI vì ngày giờ/thời gian thông báo có thể đã đổi
-            AlarmScheduler.cancelTaskAlarm(requireContext(), task);
             taskViewModel.updateTaskWithSubTasks(task, subTasks);
-            AlarmScheduler.scheduleTaskAlarm(requireContext(), task);
-
             Toast.makeText(requireContext(), R.string.msg_task_saved, Toast.LENGTH_SHORT).show();
             dismiss();
         }

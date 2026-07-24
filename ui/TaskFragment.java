@@ -20,16 +20,14 @@ import com.example.todolist.R;
 import com.example.todolist.model.SubTask;
 import com.example.todolist.model.Task;
 import com.example.todolist.model.TaskWithSubTasks;
-import com.example.todolist.notification.AlarmScheduler;
 import com.example.todolist.viewmodel.TaskViewModel;
-import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteractionListener {
@@ -38,12 +36,11 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteract
     private TaskAdapter taskAdapter;
     private RecyclerView recyclerView;
     private View layoutEmptyState;
-    private ChipGroup chipGroupTopics;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                              @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_task, container, false);
     }
 
@@ -55,7 +52,7 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteract
 
         bindGreetingHeader(view);
         bindSearchBar(view);
-        chipGroupTopics = view.findViewById(R.id.chip_group_topics);
+        bindStatusChips(view);
 
         TextView tvProgressLabel = view.findViewById(R.id.tv_progress_label);
         ProgressBar progressToday = view.findViewById(R.id.progress_today);
@@ -71,8 +68,6 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteract
             progressToday.setProgress(progress.completed);
             tvProgressLabel.setText(getString(R.string.label_today_progress, progress.completed, progress.total));
         });
-
-        taskViewModel.getDistinctTopics().observe(getViewLifecycleOwner(), this::rebuildTopicChips);
 
         taskViewModel.getFilteredTasks().observe(getViewLifecycleOwner(), tasks -> {
             taskAdapter.submitList(tasks);
@@ -104,55 +99,31 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteract
         });
     }
 
-    private void rebuildTopicChips(List<String> topics) {
-        int previouslyCheckedId = chipGroupTopics.getCheckedChipId();
-        String previouslySelectedText = null;
-        if (previouslyCheckedId != View.NO_ID) {
-            Chip checkedChip = chipGroupTopics.findViewById(previouslyCheckedId);
-            if (checkedChip != null) previouslySelectedText = checkedChip.getText().toString();
-        }
-
-        chipGroupTopics.removeAllViews();
-
-        Chip chipAll = createTopicChip(getString(R.string.filter_all));
-        chipGroupTopics.addView(chipAll);
-
-        boolean reselected = false;
-        for (String topic : topics) {
-            Chip chip = createTopicChip(topic);
-            chipGroupTopics.addView(chip);
-            if (topic.equals(previouslySelectedText)) {
-                chip.setChecked(true);
-                reselected = true;
-            }
-        }
-        if (!reselected) chipAll.setChecked(true);
-
-        chipGroupTopics.setOnCheckedStateChangeListener((group, checkedIds) -> {
+    private void bindStatusChips(View view) {
+        ChipGroup chipGroup = view.findViewById(R.id.chip_group_status);
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (checkedIds.isEmpty()) return;
-            Chip checked = group.findViewById(checkedIds.get(0));
-            String selectedText = checked != null ? checked.getText().toString() : "";
-            taskViewModel.setSelectedTopic(selectedText.equals(getString(R.string.filter_all)) ? "" : selectedText);
+            int checkedId = checkedIds.get(0);
+            if (checkedId == R.id.chip_status_not_done) {
+                taskViewModel.setCompletionFilter(TaskViewModel.CompletionFilter.NOT_DONE);
+            } else if (checkedId == R.id.chip_status_in_progress) {
+                taskViewModel.setCompletionFilter(TaskViewModel.CompletionFilter.IN_PROGRESS);
+            } else if (checkedId == R.id.chip_status_done) {
+                taskViewModel.setCompletionFilter(TaskViewModel.CompletionFilter.DONE);
+            } else {
+                taskViewModel.setCompletionFilter(TaskViewModel.CompletionFilter.ALL);
+            }
         });
-    }
-
-    private Chip createTopicChip(String text) {
-        Chip chip = (Chip) LayoutInflater.from(requireContext()).inflate(R.layout.chip_choice, chipGroupTopics, false);
-        chip.setId(View.generateViewId());
-        chip.setText(text);
-        return chip;
     }
 
     @Override
     public void onTaskCheckedChanged(Task task, boolean isChecked) {
-        task.setCompleted(isChecked);
-        taskViewModel.updateTask(task);
+        taskViewModel.updateTaskCompletion(task, isChecked);
     }
 
     @Override
-    public void onSubTaskCheckedChanged(SubTask subTask, boolean isChecked) {
-        subTask.setCompleted(isChecked);
-        taskViewModel.updateSubTask(subTask);
+    public void onSubTaskCheckedChanged(TaskWithSubTasks parentItem, SubTask subTask, boolean isChecked) {
+        taskViewModel.updateSubTaskCompletion(parentItem, subTask, isChecked);
     }
 
     @Override
@@ -163,7 +134,11 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnTaskInteract
 
     @Override
     public void onDeleteClicked(TaskWithSubTasks item) {
-        AlarmScheduler.cancelTaskAlarm(requireContext(), item.task);
-        taskViewModel.deleteTask(item.task);
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.title_confirm_delete)
+                .setMessage(getString(R.string.msg_confirm_delete, item.task.getTitle()))
+                .setPositiveButton(R.string.action_delete, (dialog, which) -> taskViewModel.deleteTask(item.task))
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
     }
 }

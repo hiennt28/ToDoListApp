@@ -111,13 +111,39 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chip_group_topics"
+            android:id="@+id/chip_group_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
             app:singleSelection="true"
-            app:selectionRequired="true" />
+            app:selectionRequired="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_status_all"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:checked="true" android:text="@string/filter_all" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_status_not_done"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/filter_not_done" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_status_in_progress"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/filter_in_progress" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_status_done"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/filter_done" />
+
+        </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -86,4 +86,5 @@
     <string name="action_cancel">Hủy</string>
     <string name="filter_not_done">Chưa làm</string>
     <string name="filter_done">Đã làm</string>
+    <string name="filter_in_progress">Đang làm</string>
 </resources>
